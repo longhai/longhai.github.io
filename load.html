@@ -1,0 +1,42 @@
+<!--https://longhai.github.io/load.html?core=segaMD&url=https://archive.org/download/ni-roms/roms/Sega - Mega Drive - Genesis.zip/Squirrel King (Taiwan) (En) (Unl).zip-->
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>EmulatorJS</title>
+  <style>
+    body,
+    html {
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      overflow: hidden;
+    }
+    #game {
+      width: 100%;
+      height: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="game"></div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const core = urlParams.get('core') || 'nes';
+      const gameUrl = urlParams.get('url');
+      const script = document.createElement('script');
+      if (gameUrl) {
+        EJS_player = "#game";
+        EJS_core = core;
+        EJS_pathtodata = "https://cdn.emulatorjs.org/stable/data/";
+        EJS_gameUrl = gameUrl;
+        EJS_startOnLoaded = true;
+        script.src = "https://cdn.emulatorjs.org/stable/data/loader.js";
+        document.body.appendChild(script);
+      }
+    });
+  </script>
+</body>
+</html>
