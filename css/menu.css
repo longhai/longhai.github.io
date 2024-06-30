@@ -21,7 +21,10 @@
   #logoImg {
     margin: 0 10px 0 10px; /* Khoảng cách giữa ảnh và span */
     vertical-align: middle; /* Căn giữa với văn bản nếu cần */
-    width: 24px;
+    width: var(--additive);
+}
+#logoName{
+  font-size: 1.5rem;
 }
   .header-content {
     -webkit-box-flex: 1;
