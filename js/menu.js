@@ -18,7 +18,7 @@ function handleScroll() {
     const currentScroll = window.pageYOffset;
     const scrollingDown = currentScroll > lastScrollTop;
     if (scrollingDown) {
-        header.style.transform = "translateY(-100%)"; // Cuộn xuống
+        header.style.transform = "translateY(0%)"; // Cuộn xuống
         filterBar.style.transform = "translateY(-200%)"; // Cuộn xuống
     } else {
         header.style.transform = "translateY(0)"; // Cuộn lên
