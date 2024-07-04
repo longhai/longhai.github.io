@@ -25,6 +25,7 @@
 }
 #logoName{
   font-size: 1.5rem;
+  font-weight: bold;
 }
   .header-content {
     -webkit-box-flex: 1;

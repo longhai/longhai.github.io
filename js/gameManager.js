@@ -10,7 +10,7 @@ class GameManager {
         this.searchKeyword = '';
         this.selectedLetter = 'All';
         this.regionPriority = { 'europa': 3, 'usa': 2, 'japan': 1 };
-        this.excludedKeywords = ['bios', 'test', 'in-1', 'demo', 'beta', 'retro-bit', 'aftermarket', 'video','hack'];
+        this.excludedKeywords = ['bios', 'test', 'in-1', 'demo', 'beta', 'retro-bit', 'aftermarket', 'video', 'hack'];
     }
 
     async loadMenuContent(menuItem) {
@@ -37,9 +37,12 @@ class GameManager {
         this.headerName = xmlDoc.querySelector('header > name').textContent.trim();
         this.headerDescription = xmlDoc.querySelector('header > description').textContent.trim();
         const games = Array.from(xmlDoc.querySelectorAll('game'));
-    
+
+        // Filter games to only include original ROMs and those with romof attribute
+        const originalGames = games.filter(game => !game.getAttribute('cloneof'));
+
         const uniqueGames = {};
-        games.forEach(game => {
+        originalGames.forEach(game => {
             const baseName = game.getAttribute('name').replace(/\s*\(.*?\)/g, '').toLowerCase();
             const description = game.querySelector('description').textContent.trim();
             const regionMatch = description.match(/\((europa|usa|japan)\)/i);
@@ -50,17 +53,15 @@ class GameManager {
                 uniqueGames[baseName] = { game, region, revision };
             }
         });
-    
+
         this.filteredGames = Object.values(uniqueGames).map(obj => obj.game);
         this.filteredGames = this.filteredGames.filter(game => !this.excludedKeywords.some(keyword => game.getAttribute('name').toLowerCase().includes(keyword) || game.querySelector('description').textContent.toLowerCase().includes(keyword)));
         this.filteredGames.sort((a, b) => a.getAttribute('name').toLowerCase().localeCompare(b.getAttribute('name').toLowerCase()));
-    
+
         this.totalGames = this.filteredGames.length;
         this.updateLogo(this.headerDescription);
         this.renderGames(this.currentPage);
     }
-    
-    
 
     compareGames(existingGame, newGame, newRegion, newRevision) {
         const existingRegion = existingGame.region;
@@ -116,8 +117,7 @@ class GameManager {
     applySearchFilter(games) {
         return games.filter(game => game.querySelector('description').textContent.toLowerCase().includes(this.searchKeyword.toLowerCase()));
     }
-    
-    
+
     createGameElement(game, gamesList) {
         const gameName = game.getAttribute('name');
         const gameDescription = game.querySelector('description').textContent;

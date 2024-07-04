@@ -19,7 +19,7 @@ function handleScroll() {
     const scrollingDown = currentScroll > lastScrollTop;
     if (scrollingDown) {
         header.style.transform = "translateY(0%)"; // Cuộn xuống
-        filterBar.style.transform = "translateY(-200%)"; // Cuộn xuống
+        filterBar.style.transform = "translateY(0%)"; // Cuộn xuống
     } else {
         header.style.transform = "translateY(0)"; // Cuộn lên
         filterBar.style.transform = "translateY(0)"; // Cuộn lên
@@ -63,9 +63,11 @@ menuItems.forEach(item => {
 const searchButton = document.getElementById('searchButton');
 const searchBar = document.getElementById('searchBar');
 const closeSearchButton = document.getElementById('closeSearchButton');
+const searchInput = document.getElementById('searchInput');
 
 searchButton.addEventListener('click', function() {
     searchBar.style.display = 'block';
+    searchInput.focus(); // Đưa con trỏ vào ô tìm kiếm khi mở thanh tìm kiếm
 });
 
 // Sự kiện đóng thanh tìm kiếm khi nhấn vào nút closeSearchButton

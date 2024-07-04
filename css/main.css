@@ -7,11 +7,11 @@
     display: none;
   }
   :root {
-    --background: #fff;
+    --background: #f2f2f2;
     --heart: #ff7025;
     --heart-hover: #202020;
-    --text: #000;
-    --additive: #f2f2f2;
+    --text: #9baacf;
+    --additive: #fff;
     --shadow: 0 4px 2px -2px rgba(0, 0, 0, 0.2);
     --header-height: 48px;
     --hiệu-ứng: linear-gradient(45deg, #d4fff8, #ffdeff, #ffe6e6),
@@ -53,15 +53,11 @@
     border-radius: 5px;
 }
 
-.game.active {
+.game.selected,.game:hover {
   background-color: var(--heart); /* Màu nền khi game được chọn */
-}
-.game.selected {
-  background-color: var(--background); /* Màu nền khi game được chọn */
+  color: var(--text);
   text-shadow: -1px 0 red, 0 1px red, 1px 0 red, 0 -1px red, -1px -1px red,
     1px 1px red, -1px 1px red, 1px -1px red;
-    color: #f2f2f2;
-    border: 1px solid var(--heart-hover);
 }
 
 .game img {
@@ -116,10 +112,11 @@
   font-size: 16px;
   cursor: pointer;
   background-color: var(--additive);
-  border: 1px solid var(--heart-hover);
   border-radius: 4px;
 }
-
+.pagination button:hover  {
+  background-color: var(--heart-hover);
+}
 .pagination button:disabled {
   opacity: 0.6;
   cursor: not-allowed;
