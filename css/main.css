@@ -9,9 +9,10 @@
   :root {
     --background: #f2f2f2;
     --heart: #ff7025;
-    --heart-hover: #202020;
-    --text: #7e7e7e;
+    --heart-hover: #22272e;
+    --text: #000000;
     --additive: #fff;
+    --border:#b9cbe1;
     --shadow: 0 4px 2px -2px rgba(0, 0, 0, 0.2);
     --header-height: 48px;
     --hiệu-ứng: linear-gradient(45deg, #d4fff8, #ffdeff, #ffe6e6),
@@ -24,6 +25,7 @@
       --heart-hover: #ff7025;
       --text: #c5d1de;
       --additive: #ffffff1a;
+      --border:#444c56;
       --shadow: 0 4px 2px -2px rgba(0, 0, 0, 0.2);
       --hiệu-ứng: linear-gradient(45deg, #005446, #39003f, #590000),
         linear-gradient(45deg, #007a65, #7f0e7f, #ff8983);
@@ -51,13 +53,14 @@
     transition: background-color 0.3s ease;
     box-shadow: 0.2rem 0.2rem 0.2rem rgba(0, 0, 0, 0.1);
     border-radius: 5px;
+    border: 1px solid var(--border);
 }
 
 .game.selected,.game:hover {
-  background-color: var(--heart); /* Màu nền khi game được chọn */
-  color: var(--text);
+  background-color: var(--heart-hover); /* Màu nền khi game được chọn */
   text-shadow: -1px 0 red, 0 1px red, 1px 0 red, 0 -1px red, -1px -1px red,
     1px 1px red, -1px 1px red, 1px -1px red;
+  color: #fff;
 }
 
 .game img {
@@ -113,9 +116,11 @@
   cursor: pointer;
   background-color: var(--additive);
   border-radius: 4px;
+  border: 1px solid var(--border);
 }
 .pagination button:hover  {
   background-color: var(--heart-hover);
+  color: #fff;
 }
 .pagination button:disabled {
   opacity: 0.6;
