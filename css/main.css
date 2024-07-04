@@ -19,10 +19,10 @@
   }
   @media (prefers-color-scheme: dark) {
     :root {
-      --background: #202020;
+      --background: #22272e;
       --heart: #ffffff;
       --heart-hover: #ff7025;
-      --text: #f1f1f1;
+      --text: #c5d1de;
       --additive: #ffffff1a;
       --shadow: 0 4px 2px -2px rgba(0, 0, 0, 0.2);
       --hiệu-ứng: linear-gradient(45deg, #005446, #39003f, #590000),
