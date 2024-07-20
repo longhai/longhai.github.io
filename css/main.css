@@ -36,6 +36,7 @@
     background-color: var(--background);
     color: var(--text);
     overflow-x: hidden;
+    position: sticky;
   }
   
 .games-list {
