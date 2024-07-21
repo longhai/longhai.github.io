@@ -37,7 +37,7 @@
     color: var(--text);
     overflow-x: hidden;
     position: sticky;
-    
+    overflow: hidden;
   }
   
 .games-list {
@@ -45,6 +45,7 @@
     flex-wrap: wrap;
     justify-content: space-around;
     padding-top: var(--header-height);
+    overflow-y: scroll;
   }
   .game {
     position: relative;
