@@ -1,0 +1,42 @@
+{
+  "Famicom": {
+    "url": "https://archive.org/download/ni-roms/roms/Nintendo%20-%20Nintendo%20Entertainment%20System%20(Headered).zip/",
+    "imagePath": "snap/Famicom/",
+    "core": "nes",
+    "logo": "http://longhai.github.io/logo/Famicom.svg"
+  },
+  "Super Famicom": {
+    "url": "https://archive.org/download/ni-roms/roms/Nintendo%20-%20Super%20Nintendo%20Entertainment%20System.zip/",
+    "imagePath": "snap/Super Famicom/",
+    "core": "snes",
+    "logo": "http://longhai.github.io/logo/Super Famicom.svg"
+  },
+  "Mega Drive": {
+    "url": "https://archive.org/download/ni-roms/roms/Sega - Mega Drive - Genesis.zip/",
+    "imagePath": "snap/Mega Drive/",
+    "core": "segaMD",
+    "logo": "http://longhai.github.io/logo/Mega Drive.svg"
+  },
+  "WonderSwan Color": {
+    "url": "https://archive.org/download/ni-roms/roms/Bandai - WonderSwan Color.zip/",
+    "imagePath": "snap/WonderSwan Color/",
+    "core": "ws",
+    "logo": "http://longhai.github.io/logo/WonderSwan.svg"
+  },
+  "Arcade": {
+    "url": "https://archive.org/download/2020_01_06_fbn/roms/arcade.zip/arcade/",
+    "imagePath": "https://archive.org/download/2020_01_06_fbn/support/previews.zip/previews/",
+    "core": "arcade",
+    "logo": "http://longhai.github.io/logo/Arcade.png"
+  },
+  "PlayStation": {
+    "baseUrls": {
+      "(Japan)": "https://ia801905.us.archive.org/cors_get.php?path=/10/items/chd_psx_jap/CHD-PSX-JAP/",
+      "(USA)": "https://ia801704.us.archive.org/cors_get.php?path=/12/items/chd_psx/CHD-PSX-USA/",
+      "(Europe)": "https://ia601801.us.archive.org/cors_get.php?path=/21/items/chd_psx_eur/CHD-PSX-EUR/"
+    },
+    "imagePath": "snap/PlayStation/",
+    "core": "psx",
+    "logo": "http://longhai.github.io/logo/Playstation.svg"
+  }
+}
