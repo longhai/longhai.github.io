@@ -9,16 +9,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Keyboard and gamepad controls
     document.addEventListener("keydown", (event) => {
-        if (gameOpen) {
-            if (event.key === "Escape") { // Bạn có thể sử dụng phím Escape để đóng trò chơi nếu cần
-                closeGame();
-            }
+        if (gameOpen) return; // Nếu trò chơi đang mở, không xử lý phím
+        if (event.key === "Enter") {
+            openGame(currentIndex);
         } else {
-            if (event.key === "Enter") {
-                openGame(currentIndex);
-            } else {
-                handleKeyboardNavigation(event.key);
-            }
+            handleKeyboardNavigation(event.key);
         }
     });
 
@@ -78,12 +73,12 @@ document.addEventListener("DOMContentLoaded", () => {
                 state.lastMoveTime = currentTime;
             }
 
-            // Mở trò chơi nếu nút 0 (A hoặc X) được nhấn và trò chơi chưa mở
+            // Mở trò chơi nếu button 0 được nhấn và chưa mở trò chơi
             if (buttons[0].pressed && !gameOpen) {
                 openGame(currentIndex);
             }
 
-            // Đóng trò chơi nếu nút 11 (Options hoặc Start) được nhấn và trò chơi đang mở
+            // Đóng trò chơi nếu button 11 được nhấn
             if (buttons[11].pressed && gameOpen) {
                 closeGame();
             }
@@ -125,14 +120,14 @@ document.addEventListener("DOMContentLoaded", () => {
         const url = gameItem.getAttribute('data-url');
         if (url) {
             gameOpen = true; // Đánh dấu trò chơi đang mở
-            // Mở trò chơi, ví dụ: thay đổi nguồn iframe hoặc chuyển hướng
             document.getElementById('gameFrame').src = `load.html?url=${encodeURIComponent(url)}`;
             document.getElementById('gameOverlay').style.display = 'flex';
         }
     }
 
     function closeGame() {
-        gameOpen = false;
+        gameOpen = false; // Đặt lại trạng thái trò chơi
         document.getElementById('gameOverlay').style.display = 'none';
+        document.getElementById('gameFrame').src = ""; // Dừng trò chơi
     }
 });
