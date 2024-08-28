@@ -1,238 +1,188 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const menuItems = document.querySelectorAll('.menu li');
-    const categorySelect = document.getElementById('categoryFilter');
+    const elements = {
+        systemSelectButton: document.querySelector('.btn-select'),
+        categorySelect: document.getElementById('categoryFilter'),
+        searchBar: document.getElementById('searchBar'),
+        filterCloneOf: document.getElementById('filterCloneOf'),
+        gameList: document.getElementById('gameList'),
+        gameCount: document.getElementById('gameCount'),
+        letterDistribution: document.getElementById('letterDistribution'),
+        gameFrame: document.getElementById('gameFrame'),
+        gameOverlay: document.getElementById('gameOverlay'),
+        closeButton: document.getElementById('closeButton'),
+        progressBar: document.getElementById('progressBar'),
+        dropdown: document.querySelector('#menu'),
+    };
+    let gameLinks = {};
 
-    if (menuItems.length) {
-        menuItems[0].classList.add('active');
-        loadGames(menuItems[0].textContent.trim());
-    }
+    const loadGames = (fileName) => {
+        const { categorySelect, searchBar, filterCloneOf, gameList, gameCount, letterDistribution } = elements;
+        fetch(`romlists/${fileName}.txt`)
+            .then(response => response.ok ? response.text() : Promise.reject('Failed to load file'))
+            .then(contents => {
+                const excludedKeywords = ['bios', 'test', 'demo', 'in-1'];
+                const [games, letterCounts, categories] = contents.split('\n').slice(1).reduce(([games, letterCounts, categories], line) => {
+                    const parts = line.split(';');
+                    if (!parts[1]) return [games, letterCounts, categories];
+                    const title = parts[1].toLowerCase();
+                    const firstLetter = /[A-Z]/.test(title[0].toUpperCase()) ? title[0].toUpperCase() : '#';
+                    if ((!filterCloneOf.checked || !parts[3]) &&
+                        !excludedKeywords.some(keyword => title.includes(keyword)) &&
+                        (!categorySelect.value || parts[6] === categorySelect.value) &&
+                        (!searchBar.value || title.includes(searchBar.value.trim().toLowerCase()))) {
+                        letterCounts[firstLetter] = (letterCounts[firstLetter] || 0) + 1;
+                        if (parts[6]?.trim()) categories.add(parts[6].trim());
+                        games.push({
+                            title: parts[1],
+                            url: getGameUrl(parts[0], fileName),
+                            imageUrl: `${gameLinks[fileName]?.imagePath || 'snap/'}${parts[0]}.png`
+                        });
+                    }
+                    return [games, letterCounts, categories];
+                }, [[], {}, new Set()]);
+                games.sort((a, b) => a.title.localeCompare(b.title));
 
-    menuItems.forEach(item =>
-        item.addEventListener('click', () => {
-            categorySelect.value = '';
-            setActiveMenuItem(item);
-            loadGames(item.textContent.trim());
+                gameCount.textContent = `${games.length} games`;
+                gameList.innerHTML = games.map(game => `
+                    <div class="item" data-url="${game.url}">
+                        <img data-src="${game.imageUrl}" class="lazy" alt="${game.title}" onerror="this.src='https://via.placeholder.com/512x409.6?text=No+Image'">
+                        <p>${game.title}</p>
+                    </div>
+                `).join('');
+                
+                updateLetterDistribution(letterCounts, games.length);
+                lazyLoadImages();
+
+                document.querySelectorAll('.item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        elements.gameFrame.src = `load.html?core=${gameLinks[fileName].core}&url=${encodeURIComponent(item.getAttribute('data-url'))}`;
+                        elements.gameOverlay.style.display = 'flex';
+                    });
+                });
+
+                elements.closeButton.addEventListener('click', () => {
+                    elements.gameOverlay.style.display = 'none';
+                    elements.gameFrame.src = '';
+                });
+
+                populateCategoryMenu([...categories].sort());
+            });
+    };
+
+    const getGameUrl = (gameId, system) => {
+        const gameData = gameLinks[system];
+        if (!gameData) return null;
+        if (system === "PlayStation") {
+            const region = Object.keys(gameData.baseUrls).find(region => gameId.includes(region));
+            return region ? `${gameData.baseUrls[region]}${encodeURIComponent(gameId)}.chd` : null;
+        }
+        return `${gameData.url}${encodeURIComponent(gameId)}.zip`;
+    };
+
+    const populateCategoryMenu = (categories) => {
+        const { categorySelect } = elements;
+        const currentSelection = categorySelect.value;
+        categorySelect.innerHTML = '<option value="">All Genre</option>' + categories.map(category => `
+            <option value="${category}">${category}</option>
+        `).join('');
+        categorySelect.value = currentSelection;
+    };
+
+    const updateLetterDistribution = (letterCounts, totalGames) => {
+        const { letterDistribution } = elements;
+        letterDistribution.innerHTML = '';
+        const containerWidth = letterDistribution.clientWidth;
+
+        Object.keys(letterCounts).sort().forEach(letter => {
+            const bar = document.createElement('div');
+            bar.className = 'letter-bar';
+            bar.style.width = `${(letterCounts[letter] / totalGames) * containerWidth}px`;
+            bar.textContent = letter;
+            bar.addEventListener('click', () => scrollToLetter(letter));
+            letterDistribution.appendChild(bar);
+        });
+    };
+
+    const scrollToLetter = (letter) => {
+        const targetGame = Array.from(elements.gameList.children).find(game => {
+            const firstLetter = /[A-Z]/.test(game.querySelector('p').textContent.trim()[0].toUpperCase()) ? game.querySelector('p').textContent.trim()[0].toUpperCase() : '#';
+            return firstLetter === letter;
+        });
+        if (targetGame) targetGame.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
+
+    const lazyLoadImages = () => {
+        const lazyImages = document.querySelectorAll('.lazy');
+        const observer = new IntersectionObserver(entries => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const img = entry.target;
+                    img.src = img.getAttribute('data-src');
+                    img.onload = () => img.removeAttribute('data-src');
+                    observer.unobserve(img);
+                }
+            });
+        });
+
+        lazyImages.forEach(image => observer.observe(image));
+    };
+
+    fetch('https://raw.githubusercontent.com/longhai/longhai.github.io/main/gamedata.json')
+        .then(response => response.json())
+        .then(data => {
+            gameLinks = data;
+            elements.dropdown.innerHTML = Object.keys(data).map(system => `
+                <li data-value="${system}" logo="${data[system].logo}">
+                    <img src="${data[system].logo}"/>
+                    <span>${system}</span>
+                </li>
+            `).join('');
+            if (elements.dropdown.children.length > 0) {
+                updateSystemSelection(elements.dropdown.children[0]);
+            }
         })
-    );
+        .catch(error => console.error('Error loading game links:', error));
 
-    document.getElementById('filterCloneOf').addEventListener('change', () => {
-        const activeMenuItem = document.querySelector('.menu li.active');
-        if (activeMenuItem) {
-            loadGames(activeMenuItem.textContent.trim());
+    const updateSystemSelection = (selectedItem) => {
+        const system = selectedItem.dataset.value;
+        elements.systemSelectButton.innerHTML = `
+            <img src="${selectedItem.getAttribute('logo')}"/>
+            <span>${system}</span>
+        `;
+        loadGames(system);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        elements.dropdown.classList.remove('show');
+    };
+
+    elements.systemSelectButton.addEventListener('click', () => elements.dropdown.classList.toggle('show'));
+    elements.dropdown.addEventListener('click', event => {
+        if (event.target.closest('li')) updateSystemSelection(event.target.closest('li'));
+    });
+    document.addEventListener('click', event => {
+        if (!elements.dropdown.contains(event.target) && !elements.systemSelectButton.contains(event.target)) {
+            elements.dropdown.classList.remove('show');
         }
     });
 
-    categorySelect.addEventListener('change', () => {
-        const activeMenuItem = document.querySelector('.menu li.active');
-        if (activeMenuItem) {
-            loadGames(activeMenuItem.textContent.trim());
-        }
+    ['change', 'input'].forEach(event => {
+        elements.filterCloneOf.addEventListener(event, () => loadGames(elements.systemSelectButton.textContent.trim()));
+        elements.categorySelect.addEventListener(event, () => loadGames(elements.systemSelectButton.textContent.trim()));
+        elements.searchBar.addEventListener(event, () => loadGames(elements.systemSelectButton.textContent.trim()));
     });
 
     window.addEventListener('scroll', () => {
-        updateProgressBar();
-        updateActiveLetterBar();
+        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+        elements.progressBar.style.width = `${(scrollTop / (scrollHeight - clientHeight)) * 100}%`;
+        const visibleLetters = new Set(Array.from(elements.gameList.children).filter(game => {
+            const rect = game.getBoundingClientRect();
+            return rect.top + window.scrollY < window.scrollY + window.innerHeight && rect.bottom + window.scrollY > window.scrollY;
+        }).map(game => {
+            return /[A-Z]/.test(game.querySelector('p').textContent.trim()[0].toUpperCase()) ? game.querySelector('p').textContent.trim()[0].toUpperCase() : '#';
+        }));
+        document.querySelectorAll('#letterDistribution .letter-bar').forEach(bar => {
+            bar.classList.toggle('active', visibleLetters.has(bar.textContent));
+        });
     });
-    updateProgressBar(); // Initialize progress bar
+
+    loadGames(elements.systemSelectButton.textContent.trim());
 });
-
-function setActiveMenuItem(item) {
-    document.querySelectorAll('.menu li').forEach(menuItem => {
-        menuItem.classList.remove('active');
-    });
-    item.classList.add('active');
-}
-
-function loadGames(fileName) {
-    const fileUrl = `https://longhai.github.io/romlists/${fileName}.txt`;
-    const selectedCategory = document.getElementById('categoryFilter').value;
-    const excludeCloneOf = document.getElementById('filterCloneOf').checked;
-    const excludedKeywords = ['bios', 'test', 'demo', 'in-1'];
-
-    fetch(fileUrl)
-        .then(response => response.ok ? response.text() : Promise.reject('Failed to load file'))
-        .then(contents => {
-            const lines = contents.split('\n').slice(1);
-            const categories = new Set();
-            const letterCounts = {};
-            const games = lines.map(line => line.split(';')).filter(parts => {
-                if (parts[1]) { // Check if Title exists
-                    let firstLetter = parts[1][0].toUpperCase();
-                    if (!/[A-Z]/.test(firstLetter)) {
-                        firstLetter = '#'; // Group special characters and numbers into #
-                    }
-                    if (!letterCounts[firstLetter]) {
-                        letterCounts[firstLetter] = 0;
-                    }
-                    letterCounts[firstLetter]++;
-                    if (parts[6] && parts[6].trim()) { // Avoid empty categories
-                        categories.add(parts[6].trim()); // Collect categories
-                    }
-                    return !excludeCloneOf || !parts[3]; // Exclude CloneOf if checkbox is checked
-                }
-                return false;
-            }).filter(parts => !excludedKeywords.some(keyword => parts[1].toLowerCase().includes(keyword)))
-                .filter(parts => !selectedCategory || parts[6] === selectedCategory) // Filter by selected category
-                .map(parts => ({
-                    title: parts[1],
-                    imageUrl: `https://longhai.github.io/snap/${fileName}/${parts[1]}.png`
-                }))
-                .sort((a, b) => a.title.localeCompare(b.title));
-
-            // Recalculate letterCounts after filtering by category
-            const filteredLetterCounts = {};
-            games.forEach(game => {
-                let firstLetter = game.title[0].toUpperCase();
-                if (!/[A-Z]/.test(firstLetter)) {
-                    firstLetter = '#'; // Group special characters and numbers into #
-                }
-                if (!filteredLetterCounts[firstLetter]) {
-                    filteredLetterCounts[firstLetter] = 0;
-                }
-                filteredLetterCounts[firstLetter]++;
-            });
-
-            const gameCount = games.length;
-            document.getElementById('gameCount').textContent = `Total games: ${gameCount}`;
-
-            const gameListHTML = games.map(game => {
-                const { title, imageUrl } = game;
-                return `
-                    <div>
-                        <img 
-                            data-src="${imageUrl}" 
-                            class="lazy" 
-                            alt="${title}" 
-                            onerror="this.src='https://via.placeholder.com/512x409.6?text=No+Image'">
-                        <span>${title}</span>
-                    </div>
-                `;
-            }).join('');
-
-            document.getElementById('gameList').innerHTML = gameListHTML;
-            lazyLoadImages();
-
-            populateCategoryMenu(Array.from(categories).sort());
-            updateLetterDistribution(filteredLetterCounts, games.length);
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            document.getElementById('gameCount').textContent = 'Total games: 0';
-            document.getElementById('gameList').innerHTML = '';
-            document.getElementById('letterDistribution').innerHTML = '';
-        });
-}
-
-function populateCategoryMenu(categories) {
-    const categorySelect = document.getElementById('categoryFilter');
-    const currentSelection = categorySelect.value;
-
-    const validCategories = categories.filter(category => category.trim() !== '');
-
-    categorySelect.innerHTML = '<option value="">All Categories</option>' +
-        validCategories.map(category => `<option value="${category}">${category}</option>`).join('');
-
-    categorySelect.value = currentSelection;
-}
-
-function updateLetterDistribution(letterCounts, totalGames) {
-    const letterContainer = document.getElementById('letterDistribution');
-    letterContainer.innerHTML = ''; // Clear previous content
-
-    const letters = Object.keys(letterCounts).sort();
-    const containerWidth = letterContainer.clientWidth;
-
-    letters.forEach(letter => {
-        const count = letterCounts[letter];
-        const percentage = (count / totalGames) * 100;
-        const barWidth = (containerWidth * percentage) / 100;
-        const bar = document.createElement('div');
-        bar.className = 'letter-bar';
-        bar.style.width = `${barWidth}px`;
-        bar.textContent = letter;
-        letterContainer.appendChild(bar);
-
-        // Add click event listener to scroll to the first game with this letter
-        bar.addEventListener('click', () => scrollToLetter(letter));
-    });
-}
-
-function scrollToLetter(letter) {
-    const gameList = document.getElementById('gameList');
-    const games = Array.from(gameList.children);
-    const targetGame = games.find(game => {
-        let gameTitleFirstLetter = game.querySelector('span').textContent.trim()[0].toUpperCase();
-        if (!/[A-Z]/.test(gameTitleFirstLetter)) {
-            gameTitleFirstLetter = '#'; // Group special characters and numbers into #
-        }
-        return gameTitleFirstLetter === letter;
-    });
-
-    if (targetGame) {
-        targetGame.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-}
-
-function updateProgressBar() {
-    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
-    const scrollHeight = document.documentElement.scrollHeight;
-    const clientHeight = document.documentElement.clientHeight;
-    const scrolled = (scrollTop / (scrollHeight - clientHeight)) * 100;
-    document.getElementById('progressBar').style.width = `${scrolled}%`;
-}
-
-function updateActiveLetterBar() {
-    const letterBars = document.querySelectorAll('#letterDistribution .letter-bar');
-    const gameList = document.getElementById('gameList');
-
-    if (gameList.children.length === 0) return;
-
-    const viewportTop = window.scrollY;
-    const viewportBottom = viewportTop + window.innerHeight;
-
-    const visibleGames = Array.from(gameList.children).filter(game => {
-        const rect = game.getBoundingClientRect();
-        return rect.top + window.scrollY < viewportBottom && rect.bottom + window.scrollY > viewportTop;
-    });
-
-    const visibleLetters = new Set(visibleGames.map(game => {
-        let gameTitleFirstLetter = game.querySelector('span').textContent.trim()[0].toUpperCase();
-        if (!/[A-Z]/.test(gameTitleFirstLetter)) {
-            gameTitleFirstLetter = '#'; // Group special characters and numbers into #
-        }
-        return gameTitleFirstLetter;
-    }));
-
-    letterBars.forEach(bar => {
-        const letter = bar.textContent.trim();
-        if (visibleLetters.has(letter)) {
-            bar.classList.add('active');
-        } else {
-            bar.classList.remove('active');
-        }
-    });
-}
-
-function lazyLoadImages() {
-    const lazyImages = document.querySelectorAll('.lazy');
-    const lazyLoad = image => {
-        const src = image.getAttribute('data-src');
-        if (src) {
-            image.src = src;
-            image.onload = () => image.removeAttribute('data-src');
-        }
-    };
-
-    const observer = new IntersectionObserver((entries, observer) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                lazyLoad(entry.target);
-                observer.unobserve(entry.target);
-            }
-        });
-    });
-
-    lazyImages.forEach(image => {
-        observer.observe(image);
-    });
-}
